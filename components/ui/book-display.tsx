@@ -1,13 +1,21 @@
-import Link from "next/link";
 import { Card, CardContent, CardFooter } from "./card";
 import { Button } from "./button";
-import { Book } from "@/lib/types";
+import { Book, BookTag } from "@/lib/types";
+import { useMutation } from "@tanstack/react-query";
+import { BookService } from "@/services/BookService";
+import { CartService } from "@/services/CartService";
+import { useState } from "react";
+import { Input } from "./input";
 
 type BookDisplayProps = {
   book: Book;
 };
 
 export default function BookDisplay({ book }: BookDisplayProps) {
+  const cartMutation = useMutation({
+    mutationFn: () => CartService.addBookToCart(book.BookId, quantity),
+  });
+  const [quantity, setQuantity] = useState<number>(1);
   return (
     <Card className="w-fit">
       <img
@@ -23,9 +31,20 @@ export default function BookDisplay({ book }: BookDisplayProps) {
           {book.BookWriterName}
         </div>
         <div className="font-semibold">{book.BookPrice}</div>
+        <div className="text-sm flex flex-row space-x-1">
+          {book.BookTags.map((bt: BookTag) => {
+            return <div key={bt.TagId}>{bt.Tag.TagName}</div>;
+          })}
+        </div>
+        <Input
+          type="number"
+          placeholder="1"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.valueAsNumber)}
+        />
       </CardContent>
       <CardFooter className="p-4 flex items-center justify-end">
-        <Button>Add To Cart</Button>
+        <Button onClick={() => cartMutation.mutate()}>Add To Cart</Button>
       </CardFooter>
     </Card>
   );
